@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 interface ProductHeaderProps {
@@ -14,6 +15,7 @@ export const ProductHeader: React.FC<ProductHeaderProps> = ({
   selectedCategory,
   onCategoryChange,
 }) => {
+  const navigate = useNavigate();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   return (
@@ -46,7 +48,10 @@ export const ProductHeader: React.FC<ProductHeaderProps> = ({
         </button>
 
         {/* Manage Skin Types & Concerns Button */}
-        <button className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer shadow-lg shadow-black/10 shrink-0">
+        <button
+          onClick={() => navigate('/products/skin')}
+          className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer shadow-lg shadow-black/10 shrink-0"
+        >
           <Sparkles size={14} className="text-brand-accent" />
           <span>Jenis & Masalah Kulit</span>
         </button>

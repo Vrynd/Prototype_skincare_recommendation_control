@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { DashboardView } from '../features/dashboard';
-import { ProductsView } from '../features/products';
+import { ProductsView, SkinView } from '../features/products';
 import { StatusView } from '../features/status';
 import { UsersView } from '../features/users';
 import { AccountView } from '../features/account';
@@ -18,6 +18,10 @@ export const router = createBrowserRouter([
       {
         path: 'products',
         element: <ProductsView />,
+      },
+      {
+        path: 'products/skin',
+        element: <SkinView />,
       },
       {
         path: 'status',

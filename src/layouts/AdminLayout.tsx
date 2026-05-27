@@ -30,8 +30,8 @@ export const AdminLayout: React.FC = () => {
   return (
     <div className="relative min-h-screen w-screen bg-brand-bg font-sans text-gray-100 selection:bg-brand-accent selection:text-brand-bg">
       {/* Background Animated Drifting Glow Spheres (Botanical Green) */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-[#4d7c0f]/[0.05] blur-[120px] animate-float-slow-1 pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-[#a3e635]/[0.04] blur-[120px] animate-float-slow-2 pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-[#4d7c0f]/5 blur-[120px] animate-float-slow-1 pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-[#a3e635]/4 blur-[120px] animate-float-slow-2 pointer-events-none" />
 
 
 
@@ -50,7 +50,9 @@ export const AdminLayout: React.FC = () => {
           <nav className="flex items-center gap-1 sm:gap-2 px-1 py-1 rounded-full bg-white/3 border border-white/5">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive = item.path === '/' 
+                ? location.pathname === '/' 
+                : location.pathname.startsWith(item.path);
               return (
                 <NavLink
                   key={item.name}
