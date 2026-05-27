@@ -2,14 +2,11 @@ import { useState, useEffect } from 'react';
 import type { SkinType, SkinConcern } from '../types';
 import { skinService } from '../services/skinService';
 
-export const useSkin = () => {
+export const useSkin = (activeTab: 'types' | 'concerns', searchTerm: string) => {
   const [skinTypes, setSkinTypes] = useState<SkinType[]>([]);
   const [skinConcerns, setSkinConcerns] = useState<SkinConcern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'types' | 'concerns'>('types');
 
   // Mengambil data jenis & masalah kulit secara paralel dari Supabase
   useEffect(() => {
@@ -46,8 +43,9 @@ export const useSkin = () => {
 
   // Filter pencarian berdasarkan tab aktif (jenis kulit / masalah kulit)
   const filteredItems = (activeTab === 'types' ? skinTypes : skinConcerns).filter((item) => {
-    const code = 'skin_type_code' in item ? item.skin_type_code : item.skin_concern_code;
-    const name = 'skin_type_name' in item ? item.skin_type_name : item.skin_concern_name;
+    const isType = 'skin_type_code' in item;
+    const code = isType ? (item as SkinType).skin_type_code : (item as SkinConcern).skin_concern_code;
+    const name = isType ? (item as SkinType).skin_type_name : (item as SkinConcern).skin_concern_name;
     const desc = item.description || '';
 
     const matchesSearch =
@@ -58,16 +56,7 @@ export const useSkin = () => {
     return matchesSearch;
   });
 
-  const handleTabChange = (tab: 'types' | 'concerns') => {
-    setActiveTab(tab);
-    setSearchTerm(''); // Kosongkan pencarian saat berpindah tab
-  };
-
   return {
-    searchTerm,
-    setSearchTerm,
-    activeTab,
-    setActiveTab: handleTabChange,
     filteredItems,
     isLoading,
     error,
