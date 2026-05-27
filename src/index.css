@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Poppins', 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'DM Sans', 'Poppins', system-ui, -apple-system, sans-serif;
+  
+  --color-glass-bg: rgba(42, 45, 53, 0.45);
+  --color-glass-border: rgba(255, 255, 255, 0.12);
+  --color-glass-glow: rgba(163, 230, 53, 0.06);
+  
+  --color-brand-bg: #000000;
+  --color-brand-card: #2A2D35;
+  --color-brand-primary: #4D7C0F;
+  --color-brand-primary-hover: #3f6212;
+  --color-brand-accent: #A3E635;
+  
+  --animate-float-slow-1: float-slow-1 25s infinite ease-in-out;
+  --animate-float-slow-2: float-slow-2 20s infinite ease-in-out;
+}
+
+/* Animations for drifting background glow spheres (subtle forest green mist) */
+@keyframes float-slow-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(100px, 80px) scale(1.15) rotate(120deg);
+  }
+  66% {
+    transform: translate(-50px, 120px) scale(0.9) rotate(240deg);
+  }
+}
+
+@keyframes float-slow-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1.15) rotate(0deg);
+  }
+  50% {
+    transform: translate(-120px, -80px) scale(0.95) rotate(-180deg);
+  }
+}
+
+/* Global Reset & Base Customizations */
+body {
+  background-color: var(--color-brand-bg);
+  color: #e2e8f0;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Glassmorphism custom styling utilities */
+@utility glass {
+  background: rgba(14, 14, 16, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@utility glass-card {
+  background: linear-gradient(135deg, rgba(42, 45, 53, 0.4) 0%, rgba(14, 14, 16, 0.22) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility glass-card-hover {
+  &:hover {
+    border-color: rgba(163, 230, 53, 0.2) !important;
+    box-shadow: 0 8px 32px 0 rgba(163, 230, 53, 0.03) !important;
+    transform: translateY(-2px);
+  }
+}
+
+@utility text-glow-accent {
+  text-shadow: 0 0 8px rgba(163, 230, 53, 0.2);
+}
+
+@utility bg-glow-accent {
+  box-shadow: 0 0 15px rgba(163, 230, 53, 0.12);
+}
+
+/* Hover-magnification for bottom floating dock items */
+@utility dock-item-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    transform: scale(1.15) translateY(-6px);
+  }
+}
