@@ -1,106 +1,80 @@
 import React, { useState } from 'react';
-import { Search, Shield, Mail, Trash2, SlidersHorizontal, ArrowUpDown, Check } from 'lucide-react';
-
-interface UserItem {
-  id_user: string;
-  nama_lengkap: string;
-  email: string;
-  role: 'admin' | 'user';
-  status_akun: boolean;
-  foto_profile: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { 
+  Search, 
+  Shield, 
+  Mail, 
+  Trash2, 
+  SlidersHorizontal, 
+  ArrowUpDown, 
+  Check, 
+  ChevronLeft, 
+  ChevronRight, 
+  Loader2, 
+  AlertTriangle 
+} from 'lucide-react';
+import { useUsers } from '../hooks/useUsers';
+import type { UserItem } from '../types';
 
 export const UserTable: React.FC = () => {
-  const [users, setUsers] = useState<UserItem[]>([
-    {
-      id_user: 'a9edf4f2-5027-4c71-93a0-040c34327533',
-      nama_lengkap: 'Salman Afif Alfarizi',
-      email: 'salmanalfariz@gmail.com',
-      role: 'admin',
-      status_akun: true,
-      foto_profile: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-      created_at: '2026-05-19 06:24:07 UTC',
-      updated_at: '2026-05-19 06:24:07 UTC',
-    },
-    {
-      id_user: '8ec48d28-cf50-4286-bf58-99dd2c2f1b0c',
-      nama_lengkap: 'Ardian Nugraha',
-      email: 'ardian@gmail.com',
-      role: 'user',
-      status_akun: true,
-      foto_profile: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      created_at: '2026-05-20 05:13:16 UTC',
-      updated_at: '2026-05-20 05:13:16 UTC',
-    },
-    {
-      id_user: '2abef9f9-c3e0-4126-9ca4-bb9d194ea9d7',
-      nama_lengkap: 'Aditya Wahyu Nugraha',
-      email: 'adit@gmail.com',
-      role: 'user',
-      status_akun: true,
-      foto_profile: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-      created_at: '2026-05-20 05:21:04 UTC',
-      updated_at: '2026-05-20 05:21:04 UTC',
-    },
-    {
-      id_user: '00b619de-569c-488b-a66e-79df7460475b',
-      nama_lengkap: 'Lutfi Yatin Hidayah',
-      email: 'lutfi@gmail.com',
-      role: 'user',
-      status_akun: true,
-      foto_profile: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      created_at: '2026-05-20 15:32:45 UTC',
-      updated_at: '2026-05-20 15:32:45 UTC',
-    },
-  ]);
+  const {
+    users,
+    totalCount,
+    isLoading,
+    error,
+    searchQuery,
+    setSearchQuery,
+    roleFilter,
+    setRoleFilter,
+    sortBy,
+    setSortBy,
+    page,
+    setPage,
+    limit,
+    totalPages,
+    deleteUser,
+    toggleUserStatus,
+  } = useUsers();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name-asc' | 'name-desc'>('newest');
   const [userToDelete, setUserToDelete] = useState<UserItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const filteredUsers = users
-    .filter(user => {
-      const matchesSearch = 
-        user.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesRole = 
-        roleFilter === 'all' ? true : user.role === roleFilter;
-        
-      return matchesSearch && matchesRole;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'name-asc') {
-        return a.nama_lengkap.localeCompare(b.nama_lengkap);
-      }
-      if (sortBy === 'name-desc') {
-        return b.nama_lengkap.localeCompare(a.nama_lengkap);
-      }
-      if (sortBy === 'newest') {
-        return new Date(b.created_at.replace(' UTC', 'Z')).getTime() - new Date(a.created_at.replace(' UTC', 'Z')).getTime();
-      }
-      if (sortBy === 'oldest') {
-        return new Date(a.created_at.replace(' UTC', 'Z')).getTime() - new Date(b.created_at.replace(' UTC', 'Z')).getTime();
-      }
-      return 0;
-    });
-
-  const handleDelete = (id: string) => {
-    setUsers(users.filter(u => u.id_user !== id));
+  const handleDelete = async (id: string) => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteUser(id);
+      setToast(`Pengguna "${userToDelete.nama_lengkap}" berhasil dihapus dari database.`);
+      setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      const errorObj = err as Error;
+      setToast(`Gagal menghapus pengguna: ${errorObj.message}`);
+      setTimeout(() => setToast(null), 4000);
+    } finally {
+      setIsDeleting(false);
+      setUserToDelete(null);
+    }
   };
 
-  const handleToggleStatus = (id: string) => {
-    setUsers(users.map(u => 
-      u.id_user === id ? { ...u, status_akun: !u.status_akun } : u
-    ));
+  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
+    setStatusUpdatingId(id);
+    try {
+      const newStatus = await toggleUserStatus(id, currentStatus);
+      setToast(`Status akun berhasil diubah menjadi ${newStatus ? 'Aktif' : 'Ditangguhkan'}.`);
+      setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      const errorObj = err as Error;
+      setToast(`Gagal mengubah status: ${errorObj.message}`);
+      setTimeout(() => setToast(null), 4000);
+    } finally {
+      setStatusUpdatingId(null);
+    }
   };
 
   const formatIndonesianDate = (dateStr: string) => {
     try {
+      if (!dateStr) return '-';
       let cleaned = dateStr.trim();
       if (cleaned.includes(' ')) {
         cleaned = cleaned.replace(' ', 'T').replace(' UTC', 'Z');
@@ -108,16 +82,7 @@ export const UserTable: React.FC = () => {
       
       const date = new Date(cleaned);
       if (isNaN(date.getTime())) {
-        const parts = dateStr.split(' ')[0].split('-');
-        if (parts.length !== 3) return dateStr;
-        const year = parts[0];
-        const monthIndex = parseInt(parts[1], 10);
-        const day = parseInt(parts[2], 10);
-        const months = [
-          'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ];
-        return `${day} ${months[monthIndex - 1]} ${year}`;
+        return dateStr;
       }
 
       const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -135,13 +100,14 @@ export const UserTable: React.FC = () => {
       const minutes = String(date.getMinutes()).padStart(2, '0');
       
       return `${dayName}, ${day} ${monthName} ${year} • ${hours}:${minutes} WIB`;
-    } catch (e) {
+    } catch {
       return dateStr;
     }
   };
 
   const getRelativeTime = (dateStr: string) => {
     try {
+      if (!dateStr) return '';
       let cleaned = dateStr.trim();
       if (cleaned.includes(' ')) {
         cleaned = cleaned.replace(' ', 'T').replace(' UTC', 'Z');
@@ -149,7 +115,7 @@ export const UserTable: React.FC = () => {
       const date = new Date(cleaned);
       if (isNaN(date.getTime())) return '';
 
-      const now = new Date('2026-05-26T12:19:21+07:00');
+      const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -165,25 +131,35 @@ export const UserTable: React.FC = () => {
       if (diffMonths < 12) return `${diffMonths} bulan yang lalu`;
       
       return `${Math.floor(diffMonths / 12)} tahun yang lalu`;
-    } catch (e) {
+    } catch {
       return '';
     }
   };
+
+
 
   return (
     <div className="space-y-6">
       {/* Sub-Header Actions */}
       <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
         {/* Search Input */}
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/5 border border-white/10 w-full md:w-80 focus-within:border-brand-primary/50 transition-all duration-300">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/5 border border-white/10 w-full md:w-80 focus-within:border-[#84cc16]/50 transition-all duration-300">
           <Search size={14} className="text-gray-400" />
           <input
             type="text"
             placeholder="Cari pengguna berdasarkan nama atau email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-transparent text-xs text-white border-none outline-none w-full placeholder-gray-500 font-medium"
           />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="text-[10px] text-gray-500 hover:text-white cursor-pointer px-1"
+            >
+              ×
+            </button>
+          )}
         </div>
 
         {/* Filter & Sort Controls */}
@@ -193,12 +169,15 @@ export const UserTable: React.FC = () => {
             <SlidersHorizontal size={12} className="text-gray-400" />
             <select
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as any)}
+              onChange={(e) => {
+                setRoleFilter(e.target.value as 'all' | 'admin' | 'user');
+                setPage(1);
+              }}
               className="bg-transparent text-xs text-white outline-none border-none cursor-pointer pr-2 font-medium select-custom-icon"
             >
-              <option value="all" className="bg-slate-900 text-white">Semua Peran</option>
-              <option value="admin" className="bg-slate-900 text-white">Administrator</option>
-              <option value="user" className="bg-slate-900 text-white">Pengguna</option>
+              <option value="all" className="bg-slate-950 text-white">Semua Peran</option>
+              <option value="admin" className="bg-slate-950 text-white">Administrator</option>
+              <option value="user" className="bg-slate-950 text-white">Pengguna</option>
             </select>
           </div>
 
@@ -207,22 +186,49 @@ export const UserTable: React.FC = () => {
             <ArrowUpDown size={12} className="text-gray-400" />
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => {
+                setSortBy(e.target.value as 'newest' | 'oldest' | 'name-asc' | 'name-desc');
+                setPage(1);
+              }}
               className="bg-transparent text-xs text-white outline-none border-none cursor-pointer pr-2 font-medium select-custom-icon"
             >
-              <option value="newest" className="bg-slate-900 text-white">Terbaru</option>
-              <option value="oldest" className="bg-slate-900 text-white">Terlama</option>
-              <option value="name-asc" className="bg-slate-900 text-white">Nama A - Z</option>
-              <option value="name-desc" className="bg-slate-900 text-white">Nama Z - A</option>
+              <option value="newest" className="bg-slate-950 text-white">Terbaru</option>
+              <option value="oldest" className="bg-slate-950 text-white">Terlama</option>
+              <option value="name-asc" className="bg-slate-950 text-white">Nama A - Z</option>
+              <option value="name-desc" className="bg-slate-950 text-white">Nama Z - A</option>
             </select>
           </div>
         </div>
       </div>
 
+      {/* Error Message Alert */}
+      {error && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
+          <AlertTriangle size={16} />
+          <span>{error}</span>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="ml-auto underline font-semibold hover:text-white"
+          >
+            Muat Ulang
+          </button>
+        </div>
+      )}
+
       {/* Users Table Card */}
-      <div className="glass-card rounded-2xl overflow-hidden border border-white/5 shadow-2xl">
+      <div className="glass-card rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative">
+        {/* Loading overlay when refreshing or performing operations */}
+        {isLoading && users.length > 0 && (
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] z-10 flex items-center justify-center transition-all duration-300">
+            <div className="bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-2xl">
+              <Loader2 size={16} className="text-[#84cc16] animate-spin" />
+              <span className="text-xs text-gray-300 font-semibold">Memperbarui data...</span>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[650px]">
+          <table className="w-full text-left border-collapse min-w-162.5">
             <thead>
               <tr className="border-b border-white/5 bg-white/2">
                 <th className="p-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-6">Pengguna</th>
@@ -233,8 +239,35 @@ export const UserTable: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {isLoading && users.length === 0 ? (
+                // Skeleton loading rows for elite botanic feel
+                Array.from({ length: limit }).map((_, idx) => (
+                  <tr key={idx} className="animate-pulse">
+                    <td className="p-4 pl-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-white/5" />
+                        <div className="space-y-2">
+                          <div className="h-3 w-28 bg-white/10 rounded" />
+                          <div className="h-2.5 w-36 bg-white/5 rounded" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="h-3 w-20 bg-white/5 rounded" />
+                    </td>
+                    <td className="p-4">
+                      <div className="h-5 w-16 bg-white/5 rounded-full" />
+                    </td>
+                    <td className="p-4">
+                      <div className="h-3 w-32 bg-white/5 rounded" />
+                    </td>
+                    <td className="p-4 text-center pr-6">
+                      <div className="h-8 w-8 bg-white/5 rounded-lg mx-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : users.length > 0 ? (
+                users.map((user) => (
                   <tr key={user.id_user} className="hover:bg-white/2 transition-colors duration-200">
                     {/* User profile details */}
                     <td className="p-4 pl-6">
@@ -242,7 +275,10 @@ export const UserTable: React.FC = () => {
                         <img
                           src={user.foto_profile || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}
                           alt={user.nama_lengkap}
-                          className="w-9 h-9 rounded-lg object-cover ring-2 ring-white/5 flex-shrink-0"
+                          className="w-9 h-9 rounded-lg object-cover ring-2 ring-white/5 shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
+                          }}
                         />
                         <div>
                           <h4 className="font-semibold text-xs text-white">{user.nama_lengkap}</h4>
@@ -257,7 +293,7 @@ export const UserTable: React.FC = () => {
                     {/* Role */}
                     <td className="p-4">
                       <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                        <Shield size={12} className={user.role === 'admin' ? 'text-brand-accent' : 'text-gray-400'} />
+                        <Shield size={12} className={user.role === 'admin' ? 'text-[#84cc16]' : 'text-gray-400'} />
                         <span className="font-medium capitalize">{user.role === 'admin' ? 'Administrator' : 'Pengguna'}</span>
                       </div>
                     </td>
@@ -265,14 +301,19 @@ export const UserTable: React.FC = () => {
                     {/* Status */}
                     <td className="p-4">
                       <button 
-                        onClick={() => handleToggleStatus(user.id_user)}
+                        disabled={statusUpdatingId === user.id_user}
+                        onClick={() => handleToggleStatus(user.id_user, user.status_akun)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-bold border transition-colors cursor-pointer ${
                           user.status_akun
                             ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'
                             : 'text-rose-400 bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20'
-                        }`}
+                        } disabled:opacity-50`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${user.status_akun ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                        {statusUpdatingId === user.id_user ? (
+                          <Loader2 size={8} className="animate-spin text-white" />
+                        ) : (
+                          <span className={`w-1.5 h-1.5 rounded-full ${user.status_akun ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                        )}
                         {user.status_akun ? 'Aktif' : 'Ditangguhkan'}
                       </button>
                     </td>
@@ -301,8 +342,30 @@ export const UserTable: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-xs text-gray-500 font-medium">
-                    Tidak ditemukan pengguna yang cocok dengan pencarian Anda.
+                  <td colSpan={5} className="p-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                      {/* Big Rounded Pill Container (Visual Placeholder in Wireframe) */}
+                      <div className="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-400 font-display font-semibold text-xs tracking-wider inline-flex items-center gap-2 shadow-lg">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+                        Pencarian Tidak Ditemukan
+                      </div>
+                      
+                      {/* Subtitle/Text Line */}
+                      <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                        Tidak ditemukan pengguna yang cocok dengan kriteria pencarian atau filter "{searchQuery}".
+                      </p>
+
+                      {/* Small CTA Pill/Button */}
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setRoleFilter('all');
+                        }}
+                        className="px-4 py-1.5 rounded-full bg-[#84cc16]/10 border border-[#84cc16]/20 text-[10px] font-bold text-[#84cc16] hover:bg-[#84cc16]/20 hover:border-[#84cc16]/40 transition-all duration-300 shadow-md shadow-[#84cc16]/5 cursor-pointer uppercase tracking-wider"
+                      >
+                        Atur Ulang Pencarian
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -311,6 +374,43 @@ export const UserTable: React.FC = () => {
         </div>
       </div>
 
+      {/* SEPARATE PAGINATION FOOTER CARD - DESIGNED EXACTLY LIKE THE WIREFRAME */}
+      {totalPages > 0 && (
+        <div className="glass-card rounded-2xl border border-white/5 shadow-2xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white/1">
+          {/* Left Side: Long rounded pill containing the showing page counts */}
+          <div className="flex items-center justify-center sm:justify-start">
+            <div className="inline-flex items-center px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300 font-semibold tracking-wide shadow-inner">
+              Menampilkan <span className="text-[#84cc16] mx-1">{(page - 1) * limit + 1}</span> - <span className="text-[#84cc16] mx-1">{Math.min(page * limit, totalCount)}</span> dari <span className="text-[#84cc16] mx-1">{totalCount}</span> pengguna
+            </div>
+          </div>
+
+          {/* Right Side: Two distinct rounded pill-buttons side-by-side (Sebelumnya & Selanjutnya) */}
+          <div className="flex items-center justify-center gap-3">
+            {/* Prev Button: Rounded capsule/pill */}
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:text-[#84cc16] hover:bg-[#84cc16]/5 hover:border-[#84cc16]/30 hover:shadow-[0_0_12px_rgba(132,204,22,0.15)] transition-all duration-300 disabled:opacity-20 disabled:pointer-events-none cursor-pointer"
+              title="Halaman Sebelumnya"
+            >
+              <ChevronLeft size={14} />
+              Sebelumnya
+            </button>
+
+            {/* Next Button: Rounded capsule/pill */}
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-gray-300 hover:text-[#84cc16] hover:bg-[#84cc16]/5 hover:border-[#84cc16]/30 hover:shadow-[0_0_12px_rgba(132,204,22,0.15)] transition-all duration-300 disabled:opacity-20 disabled:pointer-events-none cursor-pointer"
+              title="Halaman Selanjutnya"
+            >
+              Selanjutnya
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* MODAL KONFIRMASI HAPUS (Glassmorphism Popup) */}
       {userToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -318,33 +418,35 @@ export const UserTable: React.FC = () => {
             <div className="p-6 text-center space-y-4">
               {/* Glowing Alert Icon */}
               <div className="mx-auto w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shadow-lg shadow-rose-500/5">
-                <Trash2 size={20} />
+                {isDeleting ? (
+                  <Loader2 size={20} className="animate-spin text-rose-400" />
+                ) : (
+                  <Trash2 size={20} />
+                )}
               </div>
               
               <div className="space-y-1.5">
                 <h3 className="font-display font-bold text-base text-white tracking-tight">Hapus Pengguna?</h3>
                 <p className="text-xs text-gray-400 leading-relaxed px-2">
-                  Apakah Anda yakin ingin menghapus pengguna <span className="font-semibold text-white">"{userToDelete.nama_lengkap}"</span>? Tindakan ini bersifat permanen dan tidak dapat dibatalkan.
+                  Apakah Anda yakin ingin menghapus pengguna <span className="font-semibold text-white">"{userToDelete.nama_lengkap}"</span>? Tindakan ini bersifat permanen dan akan menghapusnya dari database.
                 </p>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-3 border-t border-white/5 pt-4 mt-6">
                 <button 
+                  disabled={isDeleting}
                   onClick={() => setUserToDelete(null)}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-300 cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 border border-transparent transition-all duration-300 cursor-pointer disabled:opacity-50"
                 >
                   Batal
                 </button>
                 <button 
-                  onClick={() => {
-                    handleDelete(userToDelete.id_user);
-                    setToast(`Pengguna "${userToDelete.nama_lengkap}" berhasil dihapus.`);
-                    setUserToDelete(null);
-                    setTimeout(() => setToast(null), 3000);
-                  }}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-rose-500 hover:bg-rose-600 hover:shadow-rose-500/25 transition-all duration-300 shadow-md shadow-rose-500/10 cursor-pointer"
+                  disabled={isDeleting}
+                  onClick={() => handleDelete(userToDelete.id_user)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-white bg-rose-500 hover:bg-rose-600 hover:shadow-rose-500/25 transition-all duration-300 shadow-md shadow-rose-500/10 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
+                  {isDeleting && <Loader2 size={12} className="animate-spin" />}
                   Hapus
                 </button>
               </div>
