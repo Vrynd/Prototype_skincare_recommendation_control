@@ -16,6 +16,7 @@ export const SkinList: React.FC = () => {
   const {
     filteredItems,
     isLoading,
+    deleteItem,
   } = useSkin(skinActiveTab, skinSearchTerm);
 
   // Parameterisasi data untuk dikirim ke reusable component
@@ -39,6 +40,7 @@ export const SkinList: React.FC = () => {
         type={skinActiveTab}
         isLoading={isLoading}
         searchTerm={skinSearchTerm}
+        onDelete={(id) => deleteItem(id, skinActiveTab)}
       />
 
       {/* Reusable Contextual CTA Block */}

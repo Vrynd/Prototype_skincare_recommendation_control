@@ -56,10 +56,27 @@ export const useSkin = (activeTab: 'types' | 'concerns', searchTerm: string) => 
     return matchesSearch;
   });
 
+  const deleteItem = async (id: string, tab: 'types' | 'concerns'): Promise<boolean> => {
+    try {
+      if (tab === 'types') {
+        await skinService.deleteSkinType(id);
+        setSkinTypes(prev => prev.filter(item => item.skin_type_id !== id));
+      } else {
+        await skinService.deleteSkinConcern(id);
+        setSkinConcerns(prev => prev.filter(item => item.skin_concern_id !== id));
+      }
+      return true;
+    } catch (err) {
+      console.error('[useSkin] Gagal menghapus item:', err);
+      throw err;
+    }
+  };
+
   return {
     filteredItems,
     isLoading,
     error,
+    deleteItem,
     isDbEmpty: (activeTab === 'types' ? skinTypes.length : skinConcerns.length) === 0,
   };
 };

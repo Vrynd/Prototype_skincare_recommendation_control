@@ -5,11 +5,20 @@ import { ProductsView, SkinView } from '../features/products';
 import { StatusView } from '../features/status';
 import { UsersView } from '../features/users';
 import { AccountView } from '../features/account';
+import { ProtectedRoute, LoginView } from '../features/auth';
 
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    element: <LoginView />,
+  },
+  {
     path: '/',
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         path: '',
