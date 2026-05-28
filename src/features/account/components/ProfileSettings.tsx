@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../auth';
-import { Shield, Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Mail, Calendar } from 'lucide-react';
 
 export const ProfileSettings: React.FC = () => {
   const { user } = useAuth();
@@ -34,6 +34,26 @@ export const ProfileSettings: React.FC = () => {
     }, 1500);
   };
 
+  const formatJoinedDate = (dateStr?: string) => {
+    if (!dateStr) return '-';
+    try {
+      let cleaned = dateStr.trim();
+      if (cleaned.includes(' ')) {
+        cleaned = cleaned.replace(' ', 'T').replace(' UTC', 'Z');
+      }
+      const date = new Date(cleaned);
+      if (isNaN(date.getTime())) return dateStr;
+      
+      const months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Profile Overview Column */}
@@ -49,24 +69,30 @@ export const ProfileSettings: React.FC = () => {
           </div>
           
           <h3 className="font-display font-bold text-base text-white mt-4">{name}</h3>
-          <span className="text-[10px] text-brand-accent font-bold uppercase tracking-wider mt-0.5">{role === 'admin' ? 'Super Administrator' : 'Moderator'}</span>
-          <p className="text-[11px] text-gray-400 mt-2">Cyberdyne Systems Security Core</p>
-
+          <span className="text-[10px] text-[#84cc16] font-bold uppercase tracking-wider mt-0.5">{role === 'admin' ? 'Super Administrator' : 'Moderator'}</span>
+          <p className="text-[11px] text-gray-400 mt-2">Administrator Akun AG.CORE</p>
+ 
           <div className="w-full border-t border-white/5 pt-4 mt-5 space-y-3 text-left">
             <div className="flex justify-between items-center text-[11px]">
-              <span className="text-gray-500">Security Clearance</span>
-              <span className="text-white font-semibold flex items-center gap-1">
-                <Shield size={12} className="text-brand-accent" />
-                Level 4
+              <span className="text-gray-500">Email</span>
+              <span className="text-white font-medium flex items-center gap-1.5 truncate max-w-[150px]" title={user?.email || email}>
+                <Mail size={12} className="text-[#84cc16] flex-shrink-0" />
+                {user?.email || email}
               </span>
             </div>
             <div className="flex justify-between items-center text-[11px]">
-              <span className="text-gray-500">Node Location</span>
-              <span className="text-white font-medium">US-West Mainframe</span>
+              <span className="text-gray-500">Status Akun</span>
+              <span className={`font-semibold flex items-center gap-1.5 ${user?.statusAkun ?? true ? 'text-emerald-400' : 'text-rose-400'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${user?.statusAkun ?? true ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                {user?.statusAkun ?? true ? 'Aktif' : 'Ditangguhkan'}
+              </span>
             </div>
             <div className="flex justify-between items-center text-[11px]">
-              <span className="text-gray-500">Session Status</span>
-              <span className="text-emerald-400 font-semibold">Active & Secured</span>
+              <span className="text-gray-500">Tanggal Bergabung</span>
+              <span className="text-white font-medium flex items-center gap-1.5">
+                <Calendar size={12} className="text-gray-400" />
+                {formatJoinedDate(user?.createdAt)}
+              </span>
             </div>
           </div>
         </div>

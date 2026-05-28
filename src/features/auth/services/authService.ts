@@ -9,7 +9,7 @@ export const authService = {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id_user, nama_lengkap, email, role, foto_profile')
+        .select('id_user, nama_lengkap, email, role, foto_profile, status_akun, created_at')
         .eq('id_user', userId)
         .single();
 
@@ -27,6 +27,8 @@ export const authService = {
         email: data.email || '',
         role: data.role as 'admin' | 'editor' | 'user',
         avatarUrl: data.foto_profile || undefined,
+        statusAkun: data.status_akun ?? true,
+        createdAt: data.created_at || undefined,
       };
     } catch (err) {
       console.error('[AuthService] Error saat mengambil profil:', err);

@@ -4,7 +4,6 @@ import {
   Shield, 
   Mail, 
   Trash2, 
-  SlidersHorizontal, 
   ArrowUpDown, 
   Check, 
   ChevronLeft, 
@@ -23,8 +22,6 @@ export const UserTable: React.FC = () => {
     error,
     searchQuery,
     setSearchQuery,
-    roleFilter,
-    setRoleFilter,
     sortBy,
     setSortBy,
     page,
@@ -164,23 +161,6 @@ export const UserTable: React.FC = () => {
 
         {/* Filter & Sort Controls */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {/* Filter Peran */}
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
-            <SlidersHorizontal size={12} className="text-gray-400" />
-            <select
-              value={roleFilter}
-              onChange={(e) => {
-                setRoleFilter(e.target.value as 'all' | 'admin' | 'user');
-                setPage(1);
-              }}
-              className="bg-transparent text-xs text-white outline-none border-none cursor-pointer pr-2 font-medium select-custom-icon"
-            >
-              <option value="all" className="bg-slate-950 text-white">Semua Peran</option>
-              <option value="admin" className="bg-slate-950 text-white">Administrator</option>
-              <option value="user" className="bg-slate-950 text-white">Pengguna</option>
-            </select>
-          </div>
-
           {/* Urutkan Berdasarkan */}
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
             <ArrowUpDown size={12} className="text-gray-400" />
@@ -359,7 +339,6 @@ export const UserTable: React.FC = () => {
                       <button
                         onClick={() => {
                           setSearchQuery('');
-                          setRoleFilter('all');
                         }}
                         className="px-4 py-1.5 rounded-full bg-[#84cc16]/10 border border-[#84cc16]/20 text-[10px] font-bold text-[#84cc16] hover:bg-[#84cc16]/20 hover:border-[#84cc16]/40 transition-all duration-300 shadow-md shadow-[#84cc16]/5 cursor-pointer uppercase tracking-wider"
                       >

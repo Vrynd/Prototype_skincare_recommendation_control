@@ -7,7 +7,7 @@ export const userService = {
    */
   async getUsers(filters: UserFilters): Promise<UserResponse> {
     try {
-      const { searchTerm, roleFilter, sortBy, page, limit } = filters;
+      const { searchTerm, sortBy, page, limit } = filters;
       
       // Hitung offset paginasi
       const from = (page - 1) * limit;
@@ -24,10 +24,8 @@ export const userService = {
         query = query.or(`nama_lengkap.ilike.%${cleanSearch}%,email.ilike.%${cleanSearch}%`);
       }
 
-      // Tambahkan filter peran
-      if (roleFilter !== 'all') {
-        query = query.eq('role', roleFilter);
-      }
+      // Selalu filter hanya peran 'user' saja, abaikan peran administrator
+      query = query.eq('role', 'user');
 
       // Tambahkan pengurutan (sorting)
       if (sortBy === 'newest') {
