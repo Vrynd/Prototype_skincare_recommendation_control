@@ -7,6 +7,7 @@ interface ProductHeaderProps {
   onSearchChange: (value: string) => void;
   selectedCategory: string;
   onCategoryChange: (value: string) => void;
+  onAddClick?: () => void;
 }
 
 export const ProductHeader: React.FC<ProductHeaderProps> = ({
@@ -14,6 +15,7 @@ export const ProductHeader: React.FC<ProductHeaderProps> = ({
   onSearchChange,
   selectedCategory,
   onCategoryChange,
+  onAddClick,
 }) => {
   const navigate = useNavigate();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -57,7 +59,10 @@ export const ProductHeader: React.FC<ProductHeaderProps> = ({
         </button>
 
         {/* Add Product Button */}
-        <button className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-brand-bg bg-brand-accent rounded-xl hover:bg-white hover:shadow-brand-accent/25 transition-all duration-300 shadow-lg shadow-brand-accent/20 cursor-pointer shrink-0">
+        <button
+          onClick={onAddClick}
+          className="flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-brand-bg bg-brand-accent rounded-xl hover:bg-white hover:shadow-brand-accent/25 transition-all duration-300 shadow-lg shadow-brand-accent/20 cursor-pointer shrink-0"
+        >
           <Plus size={16} />
           <span>Tambah Produk</span>
         </button>

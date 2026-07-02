@@ -13,31 +13,22 @@ export const useProducts = () => {
   const [itemsPerPage] = useState(6);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const data = await productService.getProducts();
+      setProducts(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal memuat produk');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch products from database / service
   useEffect(() => {
-    let active = true;
-    const fetchProducts = async () => {
-      try {
-        setIsLoading(true);
-        const data = await productService.getProducts();
-        if (active) {
-          setProducts(data);
-          setError(null);
-        }
-      } catch (err) {
-        if (active) {
-          setError(err instanceof Error ? err.message : 'Gagal memuat produk');
-        }
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
-      }
-    };
     fetchProducts();
-    return () => {
-      active = false;
-    };
   }, []);
 
   // Filter & Search Logic
@@ -129,5 +120,19 @@ export const useProducts = () => {
     isLoading,
     error,
     isDbEmpty: products.length === 0,
+    refreshProducts: fetchProducts,
+    nextProductCode: (() => {
+      let maxNum = 0;
+      products.forEach(p => {
+        const match = p.product_code.match(/^S(\d+)$/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) {
+            maxNum = num;
+          }
+        }
+      });
+      return `S${String(maxNum + 1).padStart(3, '0')}`;
+    })(),
   };
 };

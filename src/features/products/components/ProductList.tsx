@@ -5,6 +5,8 @@ import { ProductTable } from './ProductTable';
 import { ProductPagination } from './ProductPagination';
 import { ConfirmationModal } from './ConfirmationModal';
 import { ProductDetailSidebar } from './ProductDetailSidebar';
+import { ProductEditModal } from './ProductEditModal';
+import { ProductAddModal } from './ProductAddModal';
 import { productService } from '../services/productService';
 import type { Product, ProductDetail } from '../types';
 
@@ -27,7 +29,13 @@ export const ProductList: React.FC = () => {
     handleToggleStatus,
     isLoading,
     isDbEmpty,
+    refreshProducts,
+    nextProductCode,
   } = useProducts();
+
+  // State modal add, edit & sidebar
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Sidebar state
   const [selectedProduct, setSelectedProduct] = useState<ProductDetail | null>(null);
@@ -73,6 +81,7 @@ export const ProductList: React.FC = () => {
         onSearchChange={setSearchTerm}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
+        onAddClick={() => setIsAddModalOpen(true)}
       />
 
       {/* Tabel produk */}
@@ -81,10 +90,7 @@ export const ProductList: React.FC = () => {
         isDbEmpty={isDbEmpty}
         onToggleStatus={handleToggleStatus}
         onDeleteClick={setProductToDelete}
-        onEditClick={(product) => {
-          // TODO: buka modal/form edit produk
-          console.log('Edit produk:', product.product_id);
-        }}
+        onEditClick={setProductToEdit}
         onRowClick={handleRowClick}
         selectedProductId={selectedProductId}
       />
@@ -117,6 +123,38 @@ export const ProductList: React.FC = () => {
           product={selectedProduct}
           isLoading={sidebarLoading}
           onClose={handleCloseSidebar}
+        />
+      )}
+
+      {/* Modal Edit Produk */}
+      {productToEdit && (
+        <ProductEditModal
+          product={productToEdit}
+          onClose={() => setProductToEdit(null)}
+          onSaveSuccess={async () => {
+            setProductToEdit(null);
+            await refreshProducts();
+
+            // Jika produk yang sedang diedit juga sedang terbuka di detail sidebar, perbarui tampilannya
+            if (selectedProductId === productToEdit.product_id) {
+              setSidebarLoading(true);
+              const detail = await productService.getProductDetail(productToEdit.product_id);
+              setSelectedProduct(detail);
+              setSidebarLoading(false);
+            }
+          }}
+        />
+      )}
+
+      {/* Modal Tambah Produk */}
+      {isAddModalOpen && (
+        <ProductAddModal
+          nextProductCode={nextProductCode}
+          onClose={() => setIsAddModalOpen(false)}
+          onSaveSuccess={async () => {
+            setIsAddModalOpen(false);
+            await refreshProducts();
+          }}
         />
       )}
     </div>

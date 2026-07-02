@@ -1,5 +1,6 @@
 export interface Product {
   product_id: string;
+  product_code: string;
   brand_name: string;
   product_name: string;
   sunscreen_type: string;
@@ -11,7 +12,6 @@ export interface Product {
 
 // Tipe lengkap untuk sidebar detail — memuat semua kolom + relasi
 export interface ProductDetail extends Product {
-  product_code: string;
   texture: string;
   finish: string;
   is_water_resistant: boolean;
