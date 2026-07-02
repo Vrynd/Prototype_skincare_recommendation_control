@@ -7,12 +7,45 @@ import {
   PackageCheck, 
   ThumbsUp, 
   Users,
-  Shield 
+  Shield,
+  Loader2,
+  AlertTriangle 
 } from 'lucide-react';
 import { useAuth } from '../../auth';
+import { useDashboard } from '../hooks/useDashboard';
 
 export const DashboardView: React.FC = () => {
   const { user } = useAuth();
+  const { stats, chartData, topProducts, isLoading, error } = useDashboard();
+
+  if (isLoading) {
+    return (
+      <div className="h-96 flex flex-col items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 text-brand-accent animate-spin" />
+        <span className="text-xs text-gray-400 font-semibold">Memuat statistik dashboard...</span>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
+        <AlertTriangle size={16} />
+        <span>Gagal memuat statistik: {error || 'Data tidak ditemukan'}</span>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="ml-auto underline font-semibold hover:text-white"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    );
+  }
+
+  // Format number to Indonesian format
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('id-ID').format(num);
+  };
 
   return (
     <div className="space-y-6">
@@ -53,36 +86,36 @@ export const DashboardView: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard 
           title="Total Produk" 
-          value="1,420" 
-          change="8.2%" 
-          isPositive={true} 
+          value={formatNumber(stats.totalProducts)} 
+          change={stats.totalProductsChange} 
+          isPositive={!stats.totalProductsChange.startsWith('-')} 
           icon={Package} 
           glowColor="bg-[#4d7c0f]" 
           iconColor="text-[#a3e635] bg-[#4d7c0f]/15 border-[#4d7c0f]/30"
         />
         <StatsCard 
           title="Produk Aktif" 
-          value="1,280" 
-          change="12.4%" 
-          isPositive={true} 
+          value={formatNumber(stats.activeProducts)} 
+          change={stats.activeProductsChange} 
+          isPositive={!stats.activeProductsChange.startsWith('-')} 
           icon={PackageCheck} 
           glowColor="bg-zinc-700" 
           iconColor="text-zinc-300 bg-white/5 border-white/10"
         />
         <StatsCard 
           title="Total Rekomendasi" 
-          value="456" 
-          change="15.3%" 
-          isPositive={true} 
+          value={formatNumber(stats.totalRecommendations)} 
+          change={stats.totalRecommendationsChange} 
+          isPositive={!stats.totalRecommendationsChange.startsWith('-')} 
           icon={ThumbsUp} 
           glowColor="bg-[#4d7c0f]" 
           iconColor="text-[#a3e635] bg-[#4d7c0f]/10 border-[#4d7c0f]/20"
         />
         <StatsCard 
           title="Total Pengguna" 
-          value="2,350" 
-          change="18.2%" 
-          isPositive={true} 
+          value={formatNumber(stats.totalUsers)} 
+          change={stats.totalUsersChange} 
+          isPositive={!stats.totalUsersChange.startsWith('-')} 
           icon={Users} 
           glowColor="bg-zinc-800" 
           iconColor="text-zinc-400 bg-white/5 border-white/5"
@@ -92,10 +125,10 @@ export const DashboardView: React.FC = () => {
       {/* Chart & Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <OverviewChart />
+          <OverviewChart chartData={chartData} />
         </div>
         <div>
-          <RecentActivities />
+          <RecentActivities topProducts={topProducts} />
         </div>
       </div>
     </div>

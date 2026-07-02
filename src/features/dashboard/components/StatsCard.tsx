@@ -35,7 +35,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         <h3 className="text-2xl font-bold font-display text-white tracking-tight">{value}</h3>
         <div className="flex items-center gap-1.5 mt-1 text-[11px]">
           <span className={`font-semibold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-            {isPositive ? '+' : ''}{change}
+            {change}
           </span>
           <span className="text-gray-500 font-medium">vs bulan lalu</span>
         </div>

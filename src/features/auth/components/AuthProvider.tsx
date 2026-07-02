@@ -18,6 +18,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Ref untuk menyimpan status user terkini agar menghindari stale closure di event listener
+  const currentUserRef = React.useRef<User | null>(null);
+
+  useEffect(() => {
+    currentUserRef.current = user;
+  }, [user]);
+
   // Efek untuk memuat sesi awal dan memantau perubahan status autentikasi Supabase secara real-time
   useEffect(() => {
     let isMounted = true;
@@ -46,6 +53,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log(`[Supabase Auth Event]: ${event}`);
 
       if (event === 'SIGNED_IN' && session?.user) {
+        // Jika user yang sama sudah ter-load di context, abaikan event focus/re-auth tab
+        if (currentUserRef.current && currentUserRef.current.id === session.user.id) {
+          setIsLoading(false);
+          return;
+        }
+
         setIsLoading(true);
         try {
           const profile = await authService.getUserProfile(session.user.id);
@@ -64,7 +77,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         setIsLoading(false);
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        // Token diperbarui, pastikan profil sinkron
+        // Token diperbarui, pastikan profil sinkron jika user-nya berbeda atau belum ter-load
+        if (currentUserRef.current && currentUserRef.current.id === session.user.id) {
+          return;
+        }
         try {
           const profile = await authService.getUserProfile(session.user.id);
           if (profile && profile.role === 'admin') {

@@ -9,8 +9,8 @@ export const authService = {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id_user, nama_lengkap, email, role, foto_profile, status_akun, created_at')
-        .eq('id_user', userId)
+        .select('user_id, full_name, email, role, avatar_url, is_active, created_at')
+        .eq('user_id', userId)
         .single();
 
       if (error) {
@@ -22,12 +22,12 @@ export const authService = {
 
       // Pemetaan data dari skema DB ke interface User di UI
       return {
-        id: data.id_user,
-        name: data.nama_lengkap || 'Admin',
+        id: data.user_id,
+        name: data.full_name || 'Admin',
         email: data.email || '',
         role: data.role as 'admin' | 'editor' | 'user',
-        avatarUrl: data.foto_profile || undefined,
-        statusAkun: data.status_akun ?? true,
+        avatarUrl: data.avatar_url || undefined,
+        statusAkun: data.is_active ?? true,
         createdAt: data.created_at || undefined,
       };
     } catch (err) {

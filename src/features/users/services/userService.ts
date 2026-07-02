@@ -21,7 +21,7 @@ export const userService = {
       // Tambahkan filter pencarian (nama atau email)
       if (searchTerm.trim()) {
         const cleanSearch = searchTerm.trim();
-        query = query.or(`nama_lengkap.ilike.%${cleanSearch}%,email.ilike.%${cleanSearch}%`);
+        query = query.or(`full_name.ilike.%${cleanSearch}%,email.ilike.%${cleanSearch}%`);
       }
 
       // Selalu filter hanya peran 'user' saja, abaikan peran administrator
@@ -33,9 +33,9 @@ export const userService = {
       } else if (sortBy === 'oldest') {
         query = query.order('created_at', { ascending: true });
       } else if (sortBy === 'name-asc') {
-        query = query.order('nama_lengkap', { ascending: true });
+        query = query.order('full_name', { ascending: true });
       } else if (sortBy === 'name-desc') {
-        query = query.order('nama_lengkap', { ascending: false });
+        query = query.order('full_name', { ascending: false });
       }
 
       // Tambahkan batas paginasi (range)
@@ -47,8 +47,19 @@ export const userService = {
         throw error;
       }
 
+      const mappedData: UserItem[] = (data || []).map((dbUser: any) => ({
+        id_user: dbUser.user_id,
+        nama_lengkap: dbUser.full_name || '',
+        email: dbUser.email || '',
+        role: dbUser.role,
+        status_akun: dbUser.is_active,
+        foto_profile: dbUser.avatar_url,
+        created_at: dbUser.created_at,
+        updated_at: dbUser.updated_at,
+      }));
+
       return {
-        data: (data as UserItem[]) || [],
+        data: mappedData,
         count: count || 0,
       };
     } catch (err) {
@@ -65,7 +76,7 @@ export const userService = {
       const { error } = await supabase
         .from('users')
         .delete()
-        .eq('id_user', userId);
+        .eq('user_id', userId);
 
       if (error) {
         throw error;
@@ -84,8 +95,8 @@ export const userService = {
       const newStatus = !currentStatus;
       const { error } = await supabase
         .from('users')
-        .update({ status_akun: newStatus, updated_at: new Date().toISOString() })
-        .eq('id_user', userId);
+        .update({ is_active: newStatus, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
 
       if (error) {
         throw error;
