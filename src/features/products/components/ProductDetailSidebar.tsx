@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X, ShieldCheck, Droplets, Layers, BadgeCheck,
   Calendar, Hash, CheckCircle2, XCircle, FlaskConical
@@ -86,16 +87,16 @@ export const ProductDetailSidebar: React.FC<ProductDetailSidebarProps> = ({
   const formattedDate = (iso: string) =>
     new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-xs transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Sidebar panel */}
-      <aside className="fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[360px] flex flex-col bg-[#0f1410] border-l border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-right duration-300">
+      <aside className="fixed top-0 bottom-0 right-0 z-[100] h-screen w-[360px] flex flex-col bg-[#0f1410] border-l border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-right duration-300">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-white/8 shrink-0">
@@ -238,6 +239,7 @@ export const ProductDetailSidebar: React.FC<ProductDetailSidebarProps> = ({
           <p className="text-[10px] text-gray-500 text-center">Tekan <kbd className="px-1 py-0.5 rounded bg-white/10 text-[9px] font-mono">Esc</kbd> atau klik di luar untuk menutup</p>
         </div>
       </aside>
-    </>
+    </>,
+    document.body
   );
 };
