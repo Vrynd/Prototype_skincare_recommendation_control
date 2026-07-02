@@ -1,11 +1,34 @@
 import { supabase } from '../../../utils/supabase';
 import type { DashboardData, RecommendationTrend, TopRecommendedProduct } from '../types';
 
+// Cache in-memory untuk menghindari re-fetch setiap navigasi menu (TTL: 5 menit)
+let cachedData: DashboardData | null = null;
+let cacheTimestamp: number | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 menit
+
+/**
+ * Mengambil data cache secara synchronous (tanpa async/await).
+ * Digunakan untuk inisialisasi state React agar tidak ada spinner
+ * ketika cache sudah tersedia saat berpindah menu.
+ */
+export function getInitialCachedDashboard(): DashboardData | null {
+  if (cachedData && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
+    return cachedData;
+  }
+  return null;
+}
+
 export const dashboardService = {
   /**
-   * Mengambil semua data ringkasan statistik, tren, dan produk populer untuk dashboard
+   * Mengambil semua data ringkasan statistik, tren, dan produk populer untuk dashboard.
+   * Hasil di-cache selama 5 menit untuk mencegah loading ulang saat berpindah menu.
    */
   async getDashboardData(): Promise<DashboardData> {
+    // Kembalikan data dari cache jika masih valid (dalam 5 menit)
+    if (cachedData && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
+      return cachedData;
+    }
+
     try {
       // 1. Ambil hitungan total produk
       const { count: totalProductsCount, error: errTotalProd } = await supabase
@@ -69,7 +92,7 @@ export const dashboardService = {
       const { totalProdChange, activeProdChange, recsChange, usersChange } = 
         await this.calculateGrowthPercentages();
 
-      return {
+      const result: DashboardData = {
         stats: {
           totalProducts: totalProductsCount || 0,
           activeProducts: activeProductsCount || 0,
@@ -83,9 +106,57 @@ export const dashboardService = {
         chartData,
         topProducts,
       };
+
+      // Simpan ke cache
+      cachedData = result;
+      cacheTimestamp = Date.now();
+
+      return result;
     } catch (err) {
       console.error('[DashboardService] Gagal memuat data dashboard:', err);
       throw err;
+    }
+  },
+
+  /**
+   * Paksa invalidasi cache agar data di-fetch ulang saat diperlukan (mis. setelah edit produk)
+   */
+  invalidateCache(): void {
+    cachedData = null;
+    cacheTimestamp = null;
+  },
+
+  /**
+   * Pengecekan ringan apakah ada data baru di database dibandingkan cache yang tersimpan.
+   * Hanya melakukan COUNT query (sangat cepat), tidak mengambil seluruh data.
+   * Mengembalikan true jika ada perubahan jumlah data di database.
+   */
+  async checkForNewData(): Promise<boolean> {
+    // Jika belum ada cache, anggap tidak ada data baru (belum ada acuan pembanding)
+    if (!cachedData) return false;
+
+    try {
+      const [
+        { count: totalProducts },
+        { count: activeProducts },
+        { count: totalRecommendations },
+        { count: totalUsers },
+      ] = await Promise.all([
+        supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('recommendation_sessions').select('*', { count: 'exact', head: true }),
+        supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'user'),
+      ]);
+
+      const cached = cachedData.stats;
+      return (
+        (totalProducts ?? 0) !== cached.totalProducts ||
+        (activeProducts ?? 0) !== cached.activeProducts ||
+        (totalRecommendations ?? 0) !== cached.totalRecommendations ||
+        (totalUsers ?? 0) !== cached.totalUsers
+      );
+    } catch {
+      return false;
     }
   },
 

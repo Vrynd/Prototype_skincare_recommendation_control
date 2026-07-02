@@ -9,14 +9,15 @@ import {
   Users,
   Shield,
   Loader2,
-  AlertTriangle 
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../auth';
 import { useDashboard } from '../hooks/useDashboard';
 
 export const DashboardView: React.FC = () => {
   const { user } = useAuth();
-  const { stats, chartData, topProducts, isLoading, error } = useDashboard();
+  const { stats, chartData, topProducts, isLoading, isRefreshing, hasNewData, error, refresh } = useDashboard();
 
   if (isLoading) {
     return (
@@ -76,9 +77,40 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Tech-glowing Status Pill */}
-        <div className="relative z-10 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 shadow-lg shadow-brand-primary/5 backdrop-blur-md shrink-0 text-brand-accent">
-          <Shield size={12} className="animate-pulse" />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Akses: {user?.role || 'Admin'}</span>
+        <div className="relative z-10 flex items-center gap-2 shrink-0">
+          {/* Refresh Button dengan Indikator Data Baru */}
+          <div className="relative">
+            <button
+              onClick={refresh}
+              disabled={isRefreshing}
+              title={hasNewData ? 'Ada data baru! Klik untuk memperbarui' : 'Perbarui data dashboard'}
+              className={`relative flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest transition-all duration-300 cursor-pointer active:scale-95 disabled:cursor-not-allowed ${
+                hasNewData
+                  ? 'bg-brand-primary/20 border-brand-primary/50 text-brand-accent shadow-[0_0_20px_rgba(163,230,53,0.25)] hover:bg-brand-primary/30'
+                  : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <RefreshCw 
+                size={11} 
+                className={isRefreshing ? 'animate-spin' : hasNewData ? 'animate-bounce' : ''} 
+              />
+              <span>{isRefreshing ? 'Memperbarui...' : hasNewData ? 'Perbarui Data' : 'Sinkronisasi'}</span>
+
+              {/* Badge indikator data baru */}
+              {hasNewData && !isRefreshing && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-brand-accent" />
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Status Pill */}
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 shadow-lg shadow-brand-primary/5 backdrop-blur-md text-brand-accent">
+            <Shield size={12} className="animate-pulse" />
+            <span className="text-[9px] font-bold uppercase tracking-widest">Akses: {user?.role || 'Admin'}</span>
+          </div>
         </div>
       </div>
 

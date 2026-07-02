@@ -1,15 +1,19 @@
 import { supabase } from '../../../utils/supabase';
-import type { Product } from '../types';
+import type { Product, ProductDetail } from '../types';
 
 export const productService = {
   async getProducts(): Promise<Product[]> {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
-        .order('product_name', { ascending: true });
-      if (error) throw error;
-      return data || [];
+        .select('product_id, brand_name, product_name, sunscreen_type, spf, pa_grade, bpom_number, is_active')
+        .order('brand_name', { ascending: true });
+
+      if (error) {
+        console.error('[ProductService] Query error:', error.message, error.details);
+        throw error;
+      }
+      return (data || []) as Product[];
     } catch (error) {
       console.error('[ProductService] Gagal mengambil data dari Supabase:', error);
       return [];
@@ -44,5 +48,36 @@ export const productService = {
       console.error('[ProductService] Gagal menghapus produk di Supabase:', error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Mengambil detail lengkap sebuah produk termasuk jenis kulit dan masalah kulit
+   * yang terhubung melalui junction tables. Digunakan untuk tampilan sidebar detail.
+   */
+  async getProductDetail(productId: string): Promise<ProductDetail | null> {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          product_skin_types (
+            skin_types ( skin_type_name )
+          ),
+          product_skin_concerns (
+            skin_concerns ( skin_concern_name )
+          )
+        `)
+        .eq('product_id', productId)
+        .single();
+
+      if (error) {
+        console.error('[ProductService] Gagal mengambil detail produk:', error.message);
+        return null;
+      }
+      return data as ProductDetail;
+    } catch (error) {
+      console.error('[ProductService] Error getProductDetail:', error);
+      return null;
+    }
+  },
 };

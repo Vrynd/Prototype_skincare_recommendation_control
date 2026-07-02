@@ -81,20 +81,25 @@ export const ProductHeader: React.FC<ProductHeaderProps> = ({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              {['Semua', 'Cleanser', 'Moisturizer', 'Sunscreen', 'Toner'].map((category) => (
+              {[
+                { value: 'Semua', label: 'Semua Tipe' },
+                { value: 'chemical', label: 'Chemical' },
+                { value: 'physical', label: 'Physical' },
+                { value: 'hybrid', label: 'Hybrid' },
+              ].map(({ value, label }) => (
                 <button
-                  key={category}
+                  key={value}
                   onClick={() => {
-                    onCategoryChange(category);
+                    onCategoryChange(value);
                     setIsFilterModalOpen(false);
                   }}
                   className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 cursor-pointer ${
-                    selectedCategory === category
+                    selectedCategory === value
                       ? 'bg-brand-accent text-brand-bg shadow-md shadow-brand-accent/20 font-bold'
                       : 'text-gray-300 hover:text-white hover:bg-white/5 font-medium'
                   }`}
                 >
-                  {category === 'Semua' ? 'Semua Kategori' : category}
+                  {label}
                 </button>
               ))}
             </div>

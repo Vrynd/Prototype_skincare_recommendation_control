@@ -49,7 +49,7 @@ export const useProducts = () => {
 
     const matchesCategory =
       selectedCategory === 'Semua' ||
-      product.category === selectedCategory;
+      product.sunscreen_type === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });

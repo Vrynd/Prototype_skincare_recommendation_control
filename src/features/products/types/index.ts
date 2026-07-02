@@ -1,14 +1,27 @@
 export interface Product {
   product_id: string;
-  product_code: string;
   brand_name: string;
   product_name: string;
-  category: string;
-  usage_time: 'Pagi' | 'Malam' | 'Pagi & Malam';
-  is_active: boolean;
-  spf_value?: number | null;
-  pa_grade?: string | null;
+  sunscreen_type: string;
+  spf: number;
+  pa_grade: string;
   bpom_number: string;
+  is_active: boolean;
+}
+
+// Tipe lengkap untuk sidebar detail — memuat semua kolom + relasi
+export interface ProductDetail extends Product {
+  product_code: string;
+  texture: string;
+  finish: string;
+  is_water_resistant: boolean;
+  is_very_water_resistant: boolean;
+  is_non_comedogenic: boolean;
+  is_oil_free: boolean;
+  created_at: string;
+  updated_at: string;
+  product_skin_types?: { skin_types: { skin_type_name: string } | null }[];
+  product_skin_concerns?: { skin_concerns: { skin_concern_name: string } | null }[];
 }
 
 export interface SkinType {
