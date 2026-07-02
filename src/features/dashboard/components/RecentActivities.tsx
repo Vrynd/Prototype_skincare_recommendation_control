@@ -159,7 +159,7 @@ export const RecentActivities: React.FC<RecentActivitiesProps> = ({ topProducts 
           />
 
           {/* Sliding Panel */}
-          <div className="fixed right-0 top-0 bottom-0 w-full sm:w-95 bg-[#0b0f19]/95 border-l border-white/10 z-10000 p-6 flex flex-col justify-between shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-md animate-in slide-in-from-right duration-300">
+          <div className="fixed right-0 top-0 bottom-0 w-full sm:w-95 bg-[#0f1410] border-l border-white/10 z-10000 p-6 flex flex-col justify-between shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-md animate-in slide-in-from-right duration-300">
             {/* Decorative Background Glow */}
             <div className="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-brand-primary/10 blur-[80px] pointer-events-none" />
 

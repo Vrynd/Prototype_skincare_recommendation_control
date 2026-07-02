@@ -72,11 +72,72 @@ export const useSkin = (activeTab: 'types' | 'concerns', searchTerm: string) => 
     }
   };
 
+  const addItem = async (code: string, name: string, description: string, tab: 'types' | 'concerns'): Promise<boolean> => {
+    try {
+      if (tab === 'types') {
+        const newItem = await skinService.addSkinType(code, name, description);
+        setSkinTypes(prev => [...prev, newItem].sort((a, b) => a.skin_type_code.localeCompare(b.skin_type_code)));
+      } else {
+        const newItem = await skinService.addSkinConcern(code, name, description);
+        setSkinConcerns(prev => [...prev, newItem].sort((a, b) => a.skin_concern_code.localeCompare(b.skin_concern_code)));
+      }
+      return true;
+    } catch (err) {
+      console.error('[useSkin] Gagal menambah item:', err);
+      throw err;
+    }
+  };
+
+  const updateItem = async (id: string, code: string, name: string, description: string, tab: 'types' | 'concerns'): Promise<boolean> => {
+    try {
+      if (tab === 'types') {
+        const updated = await skinService.updateSkinType(id, code, name, description);
+        setSkinTypes(prev => prev.map(item => item.skin_type_id === id ? updated : item).sort((a, b) => a.skin_type_code.localeCompare(b.skin_type_code)));
+      } else {
+        const updated = await skinService.updateSkinConcern(id, code, name, description);
+        setSkinConcerns(prev => prev.map(item => item.skin_concern_id === id ? updated : item).sort((a, b) => a.skin_concern_code.localeCompare(b.skin_concern_code)));
+      }
+      return true;
+    } catch (err) {
+      console.error('[useSkin] Gagal mengubah item:', err);
+      throw err;
+    }
+  };
+
+  // Menghitung kode berurutan berikutnya (STxxx / SCxxx) berdasarkan nilai terbesar yang ada
+  const getNextSequentialCode = () => {
+    const list = activeTab === 'types' ? skinTypes : skinConcerns;
+    const prefix = activeTab === 'types' ? 'ST' : 'SC';
+    
+    let maxNum = 0;
+    list.forEach(item => {
+      const code = 'skin_type_code' in item 
+        ? (item as SkinType).skin_type_code 
+        : (item as SkinConcern).skin_concern_code;
+      
+      // Cocokkan pola prefix + angka, misal ST005 atau SC003
+      const match = code.match(new RegExp(`^${prefix}(\\d+)$`, 'i'));
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) {
+          maxNum = num;
+        }
+      }
+    });
+    
+    return `${prefix}${String(maxNum + 1).padStart(3, '0')}`;
+  };
+
+  const nextCode = getNextSequentialCode();
+
   return {
     filteredItems,
     isLoading,
     error,
     deleteItem,
+    addItem,
+    updateItem,
+    nextCode,
     isDbEmpty: (activeTab === 'types' ? skinTypes.length : skinConcerns.length) === 0,
   };
 };

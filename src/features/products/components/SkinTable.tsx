@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { SkinType, SkinConcern } from '../types';
-import { Trash2, Check, Loader2 } from 'lucide-react';
+import { Trash2, Pencil, Check, Loader2 } from 'lucide-react';
 
 interface SkinTableProps {
   items: (SkinType | SkinConcern)[];
@@ -8,6 +8,7 @@ interface SkinTableProps {
   isLoading: boolean;
   searchTerm: string;
   onDelete: (id: string) => Promise<boolean>;
+  onEdit?: (item: SkinType | SkinConcern) => void;
 }
 
 export const SkinTable: React.FC<SkinTableProps> = ({
@@ -16,6 +17,7 @@ export const SkinTable: React.FC<SkinTableProps> = ({
   isLoading,
   searchTerm,
   onDelete,
+  onEdit,
 }) => {
   // State untuk menghapus data & modal konfirmasi
   const [itemToDelete, setItemToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -93,15 +95,24 @@ export const SkinTable: React.FC<SkinTableProps> = ({
                       {item.description}
                     </td>
 
-                    {/* Tombol Aksi Hapus */}
-                    <td className="p-4 text-center pr-6">
-                      <button
-                        onClick={() => setItemToDelete({ id, name: name.replace('_', ' ') })}
-                        title={`Hapus ${type === 'types' ? 'Jenis Kulit' : 'Masalah Kulit'}`}
-                        className="p-2 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                    {/* Tombol Aksi Edit & Hapus */}
+                    <td className="p-4 pr-6">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => onEdit?.(item)}
+                          title={`Edit ${type === 'types' ? 'Jenis Kulit' : 'Masalah Kulit'}`}
+                          className="p-2 text-gray-500 hover:text-brand-accent hover:bg-brand-primary/10 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => setItemToDelete({ id, name: name.replace('_', ' ') })}
+                          title={`Hapus ${type === 'types' ? 'Jenis Kulit' : 'Masalah Kulit'}`}
+                          className="p-2 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

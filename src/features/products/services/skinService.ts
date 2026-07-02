@@ -74,6 +74,102 @@ export const skinService = {
       console.error('[SkinService] Gagal menghapus masalah kulit:', error);
       throw error;
     }
+  },
+
+  /**
+   * Menambahkan jenis kulit baru ke tabel `skin_types`
+   */
+  async addSkinType(code: string, name: string, description: string): Promise<SkinType> {
+    try {
+      const { data, error } = await supabase
+        .from('skin_types')
+        .insert({
+          skin_type_code: code,
+          skin_type_name: name,
+          description: description
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('[SkinService] Gagal menambahkan jenis kulit:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Memperbarui jenis kulit di tabel `skin_types`
+   */
+  async updateSkinType(id: string, code: string, name: string, description: string): Promise<SkinType> {
+    try {
+      const { data, error } = await supabase
+        .from('skin_types')
+        .update({
+          skin_type_code: code,
+          skin_type_name: name,
+          description: description,
+          updated_at: new Date().toISOString()
+        })
+        .eq('skin_type_id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('[SkinService] Gagal memperbarui jenis kulit:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Menambahkan masalah kulit baru ke tabel `skin_concerns`
+   */
+  async addSkinConcern(code: string, name: string, description: string): Promise<SkinConcern> {
+    try {
+      const { data, error } = await supabase
+        .from('skin_concerns')
+        .insert({
+          skin_concern_code: code,
+          skin_concern_name: name,
+          description: description
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('[SkinService] Gagal menambahkan masalah kulit:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Memperbarui masalah kulit di tabel `skin_concerns`
+   */
+  async updateSkinConcern(id: string, code: string, name: string, description: string): Promise<SkinConcern> {
+    try {
+      const { data, error } = await supabase
+        .from('skin_concerns')
+        .update({
+          skin_concern_code: code,
+          skin_concern_name: name,
+          description: description,
+          updated_at: new Date().toISOString()
+        })
+        .eq('skin_concern_id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('[SkinService] Gagal memperbarui masalah kulit:', error);
+      throw error;
+    }
   }
 };
 export default skinService;

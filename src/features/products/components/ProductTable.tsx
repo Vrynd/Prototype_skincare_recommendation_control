@@ -100,7 +100,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                   {/* Status — toggle aktif/nonaktif */}
                   <td className="p-4">
                     <button
-                      onClick={() => onToggleStatus(product.product_id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleStatus(product.product_id);
+                      }}
                       title="Klik untuk ubah status"
                       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors cursor-pointer ${
                         product.is_active
@@ -118,7 +121,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                     <div className="flex items-center justify-center gap-1">
                       {/* Tombol Edit */}
                       <button
-                        onClick={() => onEditClick?.(product)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditClick?.(product);
+                        }}
                         title="Edit produk"
                         className="p-2 text-gray-500 hover:text-brand-accent hover:bg-brand-primary/10 rounded-lg transition-colors cursor-pointer"
                       >
@@ -126,7 +132,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
                       </button>
                       {/* Tombol Hapus */}
                       <button
-                        onClick={() => onDeleteClick(product)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteClick(product);
+                        }}
                         title="Hapus produk"
                         className="p-2 text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                       >
