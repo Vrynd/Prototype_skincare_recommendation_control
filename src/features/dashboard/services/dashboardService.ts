@@ -54,7 +54,10 @@ export const dashboardService = {
           products (
             brand_name,
             product_name,
-            texture
+            bpom_number,
+            is_active,
+            spf,
+            pa_grade
           )
         `);
 
@@ -124,7 +127,7 @@ export const dashboardService = {
    * Menghitung produk yang paling banyak direkomendasikan
    */
   calculateTopProducts(results: any[]): TopRecommendedProduct[] {
-    const counts: Record<string, { brand: string; name: string; category: string; recsCount: number }> = {};
+    const counts: Record<string, { brand: string; name: string; bpomNumber: string; isActive: boolean; recsCount: number; spf?: number | null; paGrade?: string | null }> = {};
 
     results.forEach((row) => {
       const prod = row.products;
@@ -135,28 +138,34 @@ export const dashboardService = {
         counts[key] = {
           brand: prod.brand_name || 'Unknown',
           name: prod.product_name || 'Product',
-          category: prod.texture || 'Skincare',
+          bpomNumber: prod.bpom_number || '-',
+          isActive: prod.is_active !== false,
           recsCount: 0,
+          spf: prod.spf,
+          paGrade: prod.pa_grade,
         };
       }
       counts[key].recsCount += 1;
     });
 
-    // Urutkan berdasarkan hitungan rekomendasi terbanyak
+    // Urutkan berdasarkan hitungan rekomendasi terbanyak, ambil top 10
     const sorted = Object.values(counts)
       .sort((a, b) => b.recsCount - a.recsCount)
-      .slice(0, 4);
+      .slice(0, 10);
 
-    // Map ke type TopRecommendedProduct dengan trend statis/semi-dinamis
+    // Map ke type TopRecommendedProduct dengan bpomNumber dan isActive
     return sorted.map((p, idx) => {
-      // Simulasikan tren penurunan/kenaikan berdasarkan peringkat
       const trends = ['+18%', '+12%', '+8%', '+5%'];
       return {
         brand: p.brand,
         name: p.name,
-        category: p.category,
+        category: 'Skincare',
         recsCount: p.recsCount,
         trend: trends[idx] || '+2%',
+        bpomNumber: p.bpomNumber,
+        isActive: p.isActive,
+        spf: p.spf,
+        paGrade: p.paGrade,
       };
     });
   },

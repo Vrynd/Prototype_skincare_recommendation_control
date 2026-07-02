@@ -21,6 +21,10 @@ export interface TopRecommendedProduct {
   category: string;
   recsCount: number;
   trend: string;
+  bpomNumber: string;
+  isActive: boolean;
+  spf?: number | null;
+  paGrade?: string | null;
 }
 
 export interface DashboardData {
